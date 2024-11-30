@@ -1,2 +1,2 @@
 # WEB-ONLINE-BOOK-STORE
-THIS IS MY PROJECT IN JAVA....
+# online Bookstore is a dynamic and interactive Java-based desktop application 
