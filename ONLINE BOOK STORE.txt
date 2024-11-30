@@ -1,0 +1,152 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Map;
+
+public class DynamicBookStore {
+
+    static Map<String, Integer> bookStock = new HashMap<>();
+    static Map<String, Integer> bookPrices = new HashMap<>();
+    static String userEmail = "";
+
+    public static void main(String[] args) {
+        String[] predefinedBooks = {
+            "Java Programming", "Web Development", "Machine Learning",
+            "Digital Signal Processing", "Data Science", "Artificial Intelligence",
+            "Operating Systems", "Cloud Computing", "Computer Networks", "Cyber Security"
+        };
+
+        for (String book : predefinedBooks) {
+            bookStock.put(book.toLowerCase(), 5);
+            bookPrices.put(book.toLowerCase(), (int) (Math.random() * 1000 + 500));
+        }
+
+        JFrame mainFrame = new JFrame("Dynamic Bookstore");
+        mainFrame.setSize(600, 500);
+        mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        JPanel loginPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+        JLabel emailLabel = new JLabel("Enter Email:");
+        JTextField emailField = new JTextField();
+        JButton loginButton = new JButton("Login");
+
+        loginPanel.add(emailLabel);
+        loginPanel.add(emailField);
+        loginPanel.add(new JLabel());
+        loginPanel.add(loginButton);
+
+        JPanel bookstorePanel = new JPanel(new BorderLayout(10, 10));
+        JPanel topPanel = new JPanel(new GridLayout(1, 2, 10, 10));
+        JLabel bookLabel = new JLabel("Enter Book Name:");
+        JTextField bookNameField = new JTextField();
+        JButton searchButton = new JButton("Search Book");
+        topPanel.add(bookLabel);
+        topPanel.add(bookNameField);
+        topPanel.add(searchButton);
+
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        JLabel cartLabel = new JLabel("Cart:");
+        JTextArea cartArea = new JTextArea(8, 20);
+        cartArea.setEditable(false);
+        JScrollPane cartScroll = new JScrollPane(cartArea);
+        centerPanel.add(cartLabel, BorderLayout.NORTH);
+        centerPanel.add(cartScroll, BorderLayout.CENTER);
+
+        JPanel bottomPanel = new JPanel(new GridLayout(1, 2, 10, 10));
+        JButton addToCartButton = new JButton("Add to Cart");
+        JButton checkoutButton = new JButton("Checkout");
+        bottomPanel.add(addToCartButton);
+        bottomPanel.add(checkoutButton);
+
+        bookstorePanel.add(topPanel, BorderLayout.NORTH);
+        bookstorePanel.add(centerPanel, BorderLayout.CENTER);
+        bookstorePanel.add(bottomPanel, BorderLayout.SOUTH);
+
+        CardLayout cardLayout = new CardLayout();
+        JPanel mainPanel = new JPanel(cardLayout);
+        mainPanel.add(loginPanel, "Login");
+        mainPanel.add(bookstorePanel, "Bookstore");
+
+        mainFrame.add(mainPanel);
+
+        final int[] totalAmount = {0};
+
+        loginButton.addActionListener(e -> {
+            userEmail = emailField.getText().trim();
+            if (!userEmail.isEmpty() && userEmail.contains("@")) {
+                JOptionPane.showMessageDialog(mainFrame, "Welcome, " + userEmail + "!", "Login Successful", JOptionPane.INFORMATION_MESSAGE);
+                cardLayout.show(mainPanel, "Bookstore");
+            } else {
+                JOptionPane.showMessageDialog(mainFrame, "Please enter a valid email!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        searchButton.addActionListener(e -> {
+            String bookName = bookNameField.getText().trim().toLowerCase();
+            if (bookStock.containsKey(bookName)) {
+                int stockCount = bookStock.get(bookName);
+                int price = bookPrices.get(bookName);
+                if (stockCount > 0) {
+                    JOptionPane.showMessageDialog(mainFrame, "'" + bookName + "' is In Stock (Stock: " + stockCount + ", Price: ₹" + price + ").", "Book Found", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(mainFrame, "'" + bookName + "' is Out of Stock.", "Out of Stock", JOptionPane.WARNING_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(mainFrame, "Sorry, '" + bookName + "' is not available in our store.", "Not Found", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
+        addToCartButton.addActionListener(e -> {
+            String bookName = bookNameField.getText().trim().toLowerCase();
+            if (bookStock.containsKey(bookName) && bookStock.get(bookName) > 0) {
+                int price = bookPrices.get(bookName);
+                int currentStock = bookStock.get(bookName);
+                cartArea.append(bookName + " - ₹" + price + "\n");
+                totalAmount[0] += price;
+                bookStock.put(bookName, currentStock - 1);
+
+                JOptionPane.showMessageDialog(mainFrame, "'" + bookName + "' added to your cart.", "Added to Cart", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(mainFrame, "Book is either not in stock or not found.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        checkoutButton.addActionListener(e -> {
+            String cartContent = cartArea.getText().trim();
+            if (!cartContent.isEmpty()) {
+                JOptionPane.showMessageDialog(mainFrame, "Books:\n" + cartContent + "\nTotal Amount: ₹" + totalAmount[0], "Checkout Summary", JOptionPane.INFORMATION_MESSAGE);
+
+                // Payment Options
+                String[] paymentModes = {"Online Payment", "Offline Payment"};
+                String selectedMode = (String) JOptionPane.showInputDialog(
+                    mainFrame,
+                    "Select Payment Mode:",
+                    "Payment Options",
+                    JOptionPane.PLAIN_MESSAGE,
+                    null,
+                    paymentModes,
+                    paymentModes[0]
+                );
+
+                if (selectedMode != null) {
+                    if (selectedMode.equals("Online Payment")) {
+                        JOptionPane.showMessageDialog(mainFrame, "Redirecting to Online Payment Portal...", "Payment", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(mainFrame, "Please pay at the counter during delivery.", "Payment", JOptionPane.INFORMATION_MESSAGE);
+                    }
+
+                    JOptionPane.showMessageDialog(mainFrame, "Thank you for shopping with us!", "Thank You", JOptionPane.INFORMATION_MESSAGE);
+                    cartArea.setText("");
+                    totalAmount[0] = 0;
+                    cardLayout.show(mainPanel, "Login");
+                }
+            } else {
+                JOptionPane.showMessageDialog(mainFrame, "Your cart is empty!", "Error", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
+        mainFrame.setVisible(true);
+    }
+}
